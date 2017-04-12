@@ -1,5 +1,8 @@
 package co.neatapps.buttoncircularanimation.view;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -7,18 +10,16 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
 import android.graphics.RectF;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
+import android.os.CountDownTimer;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.animation.AnimationSet;
-import android.view.animation.ScaleAnimation;
 
 import java.util.Date;
+import java.util.TimerTask;
 
 import co.neatapps.buttoncircularanimation.R;
 
@@ -27,28 +28,28 @@ public class ProgressButtonView extends View implements View.OnTouchListener {
     public static final float LOCK_MARGIN_COEF = 2.2f;
     public static final int ARK_THICKNESS_COEF = 15;
 
+    public static final int ACTIVATION_DELAY = 1200;
+    public static final long LONG_PRESS_DELAY = 100;
+
     private RectF canvasRect;
     private float arcThickness;
     private float startAngle = -90;
-    private float endAngle = startAngle + 90;
-    private float activationDelay = 1.2f;
-    private float spacing = 2;
     private float center;
     private Paint paintMain;
     private Paint paintArc1;
-    private Paint paintArc2;
-    private Paint paintArc3;
 
     private int colorBlue;
     private int colorGray;
 
+    private float currentProgress = 0f;
 
     private boolean locked = false;
-    private boolean longPressCompleted = false;
-    private Date pressStartTime;
-    private boolean allowsTap = true;
-    private boolean allowsLongPress = true;
+    private Date pressStartTime = null;
+    private ValueAnimator animatorArc1;
 
+    public void setLocked(boolean locked) {
+        this.locked = locked;
+    }
 
     public ProgressButtonView(Context context) {
         super(context);
@@ -82,15 +83,59 @@ public class ProgressButtonView extends View implements View.OnTouchListener {
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                // todo
+                pressStartTime = new Date();
+                new Handler().postDelayed(new TimerTask() {
+                    @Override
+                    public void run() {
+                        if (isLongPressed()) {
+                            setCurrentProgress(360, true);
+                            new CountDownTimer(ACTIVATION_DELAY, ACTIVATION_DELAY) {
+                                @Override
+                                public void onTick(long millisUntilFinished) {
+                                }
+
+                                @Override
+                                public void onFinish() {
+                                    if (isLongPressCompleted()) {
+                                        locked = !locked;
+                                    }
+                                }
+                            };
+                        }
+                    }
+                }, LONG_PRESS_DELAY);
                 break;
 
             case MotionEvent.ACTION_UP:
-                // todo
+                if (isLongPressed()) {
+                    if (isLongPressCompleted()) {
+                        locked = !locked;
+                    }
+                    pressStartTime = null;
+                } else {
+                    setCurrentProgress(0, false);
+                    locked = !locked;
+                }
                 break;
         }
 
         return true;
+    }
+
+    private boolean isLongPressed() {
+        boolean b = false;
+        if (pressStartTime != null) {
+            b = (pressStartTime.getTime() - LONG_PRESS_DELAY) < new Date().getTime();
+        }
+        return b;
+    }
+
+    private boolean isLongPressCompleted() {
+        boolean b = false;
+        if (pressStartTime != null) {
+            b = (new Date().getTime() - ACTIVATION_DELAY) > pressStartTime.getTime();
+        }
+        return b;
     }
 
 
@@ -114,54 +159,10 @@ public class ProgressButtonView extends View implements View.OnTouchListener {
         int resId = locked ? R.drawable.ic_edit : R.drawable.ic_plus;
         float margin = center - arcThickness * LOCK_MARGIN_COEF;
         int lockSize = (int) (canvasRect.right - margin * 2f);
-        Bitmap bitmap = getScaledResourceBitmap(resId, getContext(), lockSize);
+        Bitmap bitmap = Utils.getScaledResourceBitmap(resId, lockSize, getContext());
         float leftIndent = ((canvasRect.right - margin * 2f) - (float) bitmap.getWidth()) / 2f;
         float topIndent = ((canvasRect.bottom - margin * 2f) - (float) bitmap.getHeight()) / 2f;
         canvas.drawBitmap(bitmap, margin + leftIndent, margin + topIndent, null);
-    }
-
-    public Bitmap getScaledResourceBitmap(int resId, Context context, int size) {
-        Drawable drawable = ContextCompat.getDrawable(context, resId);
-        Bitmap scaledBitmap = null;
-        if (drawable instanceof BitmapDrawable) {
-            Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
-            try {
-                scaledBitmap = Bitmap.createScaledBitmap(bitmap, size, size, false);
-            } catch (OutOfMemoryError e) {
-                Log.e(this.getClass().getSimpleName(), e.getMessage(), e);
-            }
-        } else {
-            int intrinsicWidth = drawable.getIntrinsicWidth();
-            int intrinsicHeight = drawable.getIntrinsicHeight();
-
-            int width;
-            int height;
-
-            if (intrinsicWidth != intrinsicHeight) {
-                if (intrinsicWidth > intrinsicHeight) {
-                    float coef = size / intrinsicWidth;
-                    width = size;
-                    height = (int) (intrinsicHeight * coef);
-                } else {
-                    double coef = (double) size / (double) intrinsicHeight;
-                    height = size;
-                    width = (int) ((double) intrinsicWidth * coef);
-                }
-            } else {
-                width = size;
-                height = size;
-            }
-
-            try {
-                scaledBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-                Canvas canvas = new Canvas(scaledBitmap);
-                drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
-                drawable.draw(canvas);
-            } catch (OutOfMemoryError e) {
-                Log.e(this.getClass().getSimpleName(), e.getMessage(), e);
-            }
-        }
-        return scaledBitmap;
     }
 
     private void drawText(Canvas canvas) {
@@ -173,19 +174,40 @@ public class ProgressButtonView extends View implements View.OnTouchListener {
     }
 
     private void drawArcs(Canvas canvas) {
-        // todo
-        ScaleAnimation showScaleAnimation = new ScaleAnimation(0.2f, 1.4f, 0.2f, 1.4f,
-                android.view.animation.Animation.RELATIVE_TO_SELF, 0.5f,
-                android.view.animation.Animation.RELATIVE_TO_SELF, 0.5f);
-        showScaleAnimation.setDuration(1000);
-        AnimationSet showAnimationSet = new AnimationSet(false);
-        showAnimationSet.addAnimation(showScaleAnimation);
-
-//        drawArc(canvas, 230, 100, colorBlue, 100);
-//        drawArc(canvas, 0, 80, colorBlue, 160);
-        drawArc(canvas, -90, 100, colorBlue, 255);
+        if (isLongPressed() && !isLongPressCompleted()) {
+            drawArc(canvas, startAngle, currentProgress, locked ? colorGray : colorBlue, 255);
+        }
     }
 
+
+    public void setCurrentProgress(float progress, boolean smoothProgress) {
+        if (animatorArc1 != null) {
+            animatorArc1.cancel();
+            animatorArc1 = null;
+        }
+        if (smoothProgress) {
+            animatorArc1 = ValueAnimator.ofFloat(this.currentProgress, progress);
+            animatorArc1.setDuration(ACTIVATION_DELAY);
+            animatorArc1.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    ProgressButtonView.this.currentProgress = (float) animation.getAnimatedValue();
+                    postInvalidate();
+                }
+            });
+            animatorArc1.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    super.onAnimationEnd(animation);
+                    animatorArc1 = null;
+                }
+            });
+            animatorArc1.start();
+        } else {
+            this.currentProgress = progress;
+            postInvalidate();
+        }
+    }
 
     private void drawArc(Canvas canvas, float startAngle, float sweepDegrees, int color, int alpha) {
         if (sweepDegrees <= 0 || sweepDegrees > 360) {
