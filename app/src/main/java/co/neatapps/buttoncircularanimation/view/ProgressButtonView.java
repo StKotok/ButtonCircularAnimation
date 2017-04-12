@@ -29,7 +29,7 @@ public class ProgressButtonView extends View implements View.OnTouchListener {
     public static final int ARK_THICKNESS_COEF = 15;
 
     public static final int ACTIVATION_DELAY = 1200;
-    public static final long LONG_PRESS_DELAY = 100;
+    public static final long LONG_PRESS_DELAY = 50;
 
     private RectF canvasRect;
     private float arcThickness;
@@ -96,8 +96,10 @@ public class ProgressButtonView extends View implements View.OnTouchListener {
 
                                 @Override
                                 public void onFinish() {
-                                    if (isLongPressCompleted()) {
+                                    if (isLongPressed() && isLongPressCompleted()) {
                                         locked = !locked;
+                                        pressStartTime = null;
+                                        setCurrentProgress(0, false);
                                     }
                                 }
                             };
@@ -107,15 +109,21 @@ public class ProgressButtonView extends View implements View.OnTouchListener {
                 break;
 
             case MotionEvent.ACTION_UP:
-                if (isLongPressed()) {
-                    if (isLongPressCompleted()) {
-                        locked = !locked;
-                    }
-                    pressStartTime = null;
-                } else {
-                    setCurrentProgress(0, false);
+                setCurrentProgress(0, false);
+                if (!isLongPressed()) {
                     locked = !locked;
                 }
+//                if (!isLongPressed()) {
+//                setCurrentProgress(0, false);
+//                locked = !locked;
+//                }
+//                else {
+//                    if (isLongPressCompleted()) {
+//                        locked = !locked;
+//                        setCurrentProgress(0, false);
+//                    }
+//                    pressStartTime = null;
+//                }
                 break;
         }
 
