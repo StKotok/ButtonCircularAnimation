@@ -4,7 +4,6 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
@@ -19,7 +18,6 @@ import co.neatapps.buttoncircularanimation.R;
 
 public class ProgressButtonView extends View {
 
-    public static final float LOCK_MARGIN_COEF = 2.2f;
     public static final int ARK_THICKNESS_COEF = 15;
 
     public static final int ACTIVATION_DELAY = 1200;
@@ -68,38 +66,11 @@ public class ProgressButtonView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        drawCenterCircle(canvas);
-        drawLock(canvas);
-        drawText(canvas);
         drawArcs(canvas);
-    }
-
-    private void drawCenterCircle(Canvas canvas) {
-        Paint paint = getPaintMain(locked ? colorGray : colorBlue);
-        canvas.drawCircle(center, center, center - arcThickness - arcThickness / 2, paint);
-    }
-
-    private void drawLock(Canvas canvas) {
-        int resId = locked ? R.drawable.ic_edit : R.drawable.ic_plus;
-        float margin = center - arcThickness * LOCK_MARGIN_COEF;
-        int lockSize = (int) (canvasRect.right - margin * 2f);
-        Bitmap bitmap = Utils.getScaledResourceBitmap(resId, lockSize, getContext());
-        float leftIndent = ((canvasRect.right - margin * 2f) - (float) bitmap.getWidth()) / 2f;
-        float topIndent = ((canvasRect.bottom - margin * 2f) - (float) bitmap.getHeight()) / 2f;
-        canvas.drawBitmap(bitmap, margin + leftIndent, margin + topIndent, null);
-    }
-
-    private void drawText(Canvas canvas) {
-        if (locked) {
-            // todo
-        } else {
-            // todo
-        }
     }
 
     private void drawArcs(Canvas canvas) {
         if (currentProgress != -90 & currentProgress != 270) {
-//        if (currentProgress != -90) {
             drawArc(canvas, startAngle, currentProgress, locked ? colorGray : colorBlue, 255);
         }
     }
