@@ -12,6 +12,7 @@ import android.graphics.RectF;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 
 import co.neatapps.buttoncircularanimation.R;
@@ -36,6 +37,7 @@ public class ProgressButtonView extends View {
 
     private boolean locked = false;
     private ValueAnimator animatorArc1;
+    private boolean canceled;
 
     public void setLocked(boolean locked) {
         this.locked = locked;
@@ -88,7 +90,9 @@ public class ProgressButtonView extends View {
     }
 
     private void setCurrentProgress(float startDegree, float progress, boolean smoothProgress, int animationLength) {
+        canceled = false;
         if (animatorArc1 != null) {
+            canceled = true;
             animatorArc1.cancel();
             animatorArc1 = null;
         }
@@ -109,6 +113,11 @@ public class ProgressButtonView extends View {
                 public void onAnimationEnd(Animator animation) {
                     super.onAnimationEnd(animation);
                     animatorArc1 = null;
+                    if (!canceled) {
+                        Log.d("d", "d");
+                        // todo Call the Callback
+                    }
+                    canceled = false;
                 }
             });
             animatorArc1.start();
