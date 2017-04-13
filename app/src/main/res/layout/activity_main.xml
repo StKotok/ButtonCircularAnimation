@@ -30,6 +30,32 @@
     <android.support.v4.widget.Space
         android:layout_width="wrap_content"
         android:layout_height="0dp"
-        android:layout_weight="2" />
+        android:layout_weight="1" />
+
+    <Button
+        android:id="@+id/btn_start_forward"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="onClick"
+        android:text="start forward" />
+
+    <Button
+        android:id="@+id/btn_start_back"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="onClick"
+        android:text="start back" />
+
+    <Button
+        android:id="@+id/btn_stop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="onClick"
+        android:text="stop" />
+
+    <android.support.v4.widget.Space
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 
 </LinearLayout>

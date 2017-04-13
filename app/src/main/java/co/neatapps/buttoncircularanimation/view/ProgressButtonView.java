@@ -10,26 +10,19 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
 import android.graphics.RectF;
-import android.os.CountDownTimer;
-import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
-import android.view.MotionEvent;
 import android.view.View;
-
-import java.util.Date;
-import java.util.TimerTask;
 
 import co.neatapps.buttoncircularanimation.R;
 
-public class ProgressButtonView extends View implements View.OnTouchListener {
+public class ProgressButtonView extends View {
 
     public static final float LOCK_MARGIN_COEF = 2.2f;
     public static final int ARK_THICKNESS_COEF = 15;
 
     public static final int ACTIVATION_DELAY = 1200;
-    public static final long LONG_PRESS_DELAY = 50;
 
     private RectF canvasRect;
     private float arcThickness;
@@ -44,7 +37,6 @@ public class ProgressButtonView extends View implements View.OnTouchListener {
     private float currentProgress = 0f;
 
     private boolean locked = false;
-    private Date pressStartTime = null;
     private ValueAnimator animatorArc1;
 
     public void setLocked(boolean locked) {
@@ -69,83 +61,7 @@ public class ProgressButtonView extends View implements View.OnTouchListener {
     private void init(Context context) {
         this.colorBlue = ContextCompat.getColor(context, R.color.blue);
         this.colorGray = ContextCompat.getColor(context, R.color.gray1);
-
-        setOnTouchListener(this);
     }
-
-
-//    C L I C K I N G
-
-    @Override
-    public boolean onTouch(View v, MotionEvent event) {
-        int x = (int) event.getX();
-        int y = (int) event.getY();
-
-        switch (event.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-                pressStartTime = new Date();
-                new Handler().postDelayed(new TimerTask() {
-                    @Override
-                    public void run() {
-                        if (isLongPressed()) {
-                            setCurrentProgress(360, true);
-                            new CountDownTimer(ACTIVATION_DELAY, ACTIVATION_DELAY) {
-                                @Override
-                                public void onTick(long millisUntilFinished) {
-                                }
-
-                                @Override
-                                public void onFinish() {
-                                    if (isLongPressed() && isLongPressCompleted()) {
-                                        locked = !locked;
-                                        pressStartTime = null;
-                                        setCurrentProgress(0, false);
-                                    }
-                                }
-                            };
-                        }
-                    }
-                }, LONG_PRESS_DELAY);
-                break;
-
-            case MotionEvent.ACTION_UP:
-                setCurrentProgress(0, false);
-                if (!isLongPressed()) {
-                    locked = !locked;
-                }
-//                if (!isLongPressed()) {
-//                setCurrentProgress(0, false);
-//                locked = !locked;
-//                }
-//                else {
-//                    if (isLongPressCompleted()) {
-//                        locked = !locked;
-//                        setCurrentProgress(0, false);
-//                    }
-//                    pressStartTime = null;
-//                }
-                break;
-        }
-
-        return true;
-    }
-
-    private boolean isLongPressed() {
-        boolean b = false;
-        if (pressStartTime != null) {
-            b = (pressStartTime.getTime() - LONG_PRESS_DELAY) < new Date().getTime();
-        }
-        return b;
-    }
-
-    private boolean isLongPressCompleted() {
-        boolean b = false;
-        if (pressStartTime != null) {
-            b = (new Date().getTime() - ACTIVATION_DELAY) > pressStartTime.getTime();
-        }
-        return b;
-    }
-
 
 //    D R A W I N G
 
@@ -182,20 +98,34 @@ public class ProgressButtonView extends View implements View.OnTouchListener {
     }
 
     private void drawArcs(Canvas canvas) {
-        if (isLongPressed() && !isLongPressCompleted()) {
+        if (currentProgress != -90 & currentProgress != 270) {
+//        if (currentProgress != -90) {
             drawArc(canvas, startAngle, currentProgress, locked ? colorGray : colorBlue, 255);
         }
     }
 
+    public void startCircleSpinnerForward(int lengthMillis) {
+        setCurrentProgress(-90, 360, true, lengthMillis);
+    }
 
-    public void setCurrentProgress(float progress, boolean smoothProgress) {
+    public void startCircleSpinnerBack(int lengthMillis) {
+        setCurrentProgress(360, -360, true, lengthMillis);
+    }
+
+    public void stopCircleSpinner() {
+        setCurrentProgress(-90, -90, false, 0);
+    }
+
+    private void setCurrentProgress(float startDegree, float progress, boolean smoothProgress, int animationLength) {
         if (animatorArc1 != null) {
             animatorArc1.cancel();
             animatorArc1 = null;
         }
+        startAngle = startDegree;
+        currentProgress = progress;
         if (smoothProgress) {
-            animatorArc1 = ValueAnimator.ofFloat(this.currentProgress, progress);
-            animatorArc1.setDuration(ACTIVATION_DELAY);
+            animatorArc1 = ValueAnimator.ofFloat(startDegree, progress);
+            animatorArc1.setDuration(animationLength);
             animatorArc1.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                 @Override
                 public void onAnimationUpdate(ValueAnimator animation) {
