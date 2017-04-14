@@ -160,7 +160,6 @@ public class ProgressIndicator extends View {
         final float maxSweep = 360f * (animSteps - 1) / animSteps + INDETERMINANT_MIN_SWEEP;
         final float start = -90f + step * (maxSweep - INDETERMINANT_MIN_SWEEP);
         setAngles(startAngle + indeterminateRotateOffset, indeterminateSweep);
-        // Extending the front of the arc
         ValueAnimator frontEndExtend = ValueAnimator.ofFloat(INDETERMINANT_MIN_SWEEP, maxSweep);
         frontEndExtend.setDuration(animDuration / animSteps / 2);
         frontEndExtend.setInterpolator(new DecelerateInterpolator(1));
@@ -172,7 +171,6 @@ public class ProgressIndicator extends View {
             }
         });
 
-        // Overall rotation
         ValueAnimator rotateAnimator1 = ValueAnimator.ofFloat(step * 720f / animSteps, (step + .5f) * 720f / animSteps);
         rotateAnimator1.setDuration(animDuration / animSteps / 2);
         rotateAnimator1.setInterpolator(new LinearInterpolator());
@@ -185,9 +183,6 @@ public class ProgressIndicator extends View {
             }
         });
 
-        // Followed by...
-
-        // Retracting the back end of the arc
         ValueAnimator backEndRetract = ValueAnimator.ofFloat(start, start + maxSweep - INDETERMINANT_MIN_SWEEP);
         backEndRetract.setDuration(animDuration / animSteps / 2);
         backEndRetract.setInterpolator(new DecelerateInterpolator(1));
@@ -201,7 +196,6 @@ public class ProgressIndicator extends View {
             }
         });
 
-        // More overall rotation
         ValueAnimator rotateAnimator2 = ValueAnimator.ofFloat((step + .5f) * 720f / animSteps, (step + 1) * 720f / animSteps);
         rotateAnimator2.setDuration(animDuration / animSteps / 2);
         rotateAnimator2.setInterpolator(new LinearInterpolator());
