@@ -18,7 +18,7 @@ public class Utils {
             try {
                 scaledBitmap = Bitmap.createScaledBitmap(bitmap, size, size, false);
             } catch (OutOfMemoryError e) {
-                Log.e(ProgressButtonView.class.getSimpleName(), e.getMessage(), e);
+                Log.e(ProgressIndicator.class.getSimpleName(), e.getMessage(), e);
             }
         } else {
             int intrinsicWidth = drawable.getIntrinsicWidth();
@@ -48,7 +48,7 @@ public class Utils {
                 drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
                 drawable.draw(canvas);
             } catch (OutOfMemoryError e) {
-                Log.e(ProgressButtonView.class.getSimpleName(), e.getMessage(), e);
+                Log.e(ProgressIndicator.class.getSimpleName(), e.getMessage(), e);
             }
         }
         return scaledBitmap;

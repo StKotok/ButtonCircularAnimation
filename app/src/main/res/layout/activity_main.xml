@@ -22,7 +22,7 @@
         android:layout_height="0dp"
         android:layout_weight="1" />
 
-    <co.neatapps.buttoncircularanimation.view.ProgressButtonView
+    <co.neatapps.buttoncircularanimation.view.ProgressIndicator
         android:id="@+id/dynamicArcView"
         android:layout_width="160dp"
         android:layout_height="160dp" />
